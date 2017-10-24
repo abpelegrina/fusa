@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?eclipse version="3.0"?>
+
+<plugin>
+   <extension id="FusaViewComponent"
+              point="org.protege.editor.core.application.ViewComponent">
+      <label value="FUSA results"/>
+      <class value="es.ugr.abpelegrina.fusa.FusaViewComponent"/>
+      <category value="@org.protege.ontologycategory"/>
+   </extension>
+   <extension id="ExampleWorkspaceTab"
+              point="org.protege.editor.core.application.WorkspaceTab">
+      <label value="FUSA"/>
+      <class value="org.protege.editor.owl.ui.OWLWorkspaceViewsTab"/>
+      <index value="X"/>
+      <editorKitId value="OWLEditorKit"/>
+      <defaultViewConfigFileName value="fusa.layout.xml"/>
+   </extension>
+</plugin>

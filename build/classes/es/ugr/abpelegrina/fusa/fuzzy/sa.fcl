@@ -1,0 +1,61 @@
+/*
+	Example: A tip calculation FIS (fuzzy inference system)
+	Calculates tip based on 'servie' and 'food'
+
+	If you want to about this example (and fuzzy logic), please 
+	read Matlab's tutorial on fuzzy logic toolbox 
+	http://www.mathworks.com/access/helpdesk/help/pdf_doc/fuzzy/fuzzy.pdf
+
+									Pablo Cingolani 
+									pcingola@users.sourceforge.net
+*/
+
+FUNCTION_BLOCK sa	// Block definition (there may be more than one block per file)
+
+VAR_INPUT				// Define input variables
+	feedback : REAL;
+	interest : REAL;
+END_VAR
+
+VAR_OUTPUT				// Define output variable
+	relevancy : REAL;
+END_VAR
+
+FUZZIFY feedback			// Fuzzify input variable 'service': {'poor', 'good' , 'excellent'}
+	TERM bad := (0, 1) (0.33, 0) ; 
+	TERM none_neutral := (0.25, 0) (0.33,1) (0.66,1) (0.75,0);
+	TERM good := (0.66, 0) (1, 1);
+END_FUZZIFY
+
+FUZZIFY interest			// Fuzzify input variable 'food': { 'rancid', 'delicious' }
+	TERM not_interested := (0, 1) (0.33, 0);
+	TERM somewhat_interested := (0.25,0) (0.33,1) (0.66,1) (0.75,0);
+	TERM very_interested := (0.66,0) (1,1);
+END_FUZZIFY
+
+DEFUZZIFY relevancy			// Defzzzify output variable 'tip' : {'cheap', 'average', 'generous' }
+	TERM not_relevant := (0,1) (0.16,1) (0.33,0);
+	TERM somewhat_relevant := (0.33,0) (0.5,1) (0.66,0);
+	TERM very_relevant := (0.66,0) (0.83,1)  (1,1);
+	METHOD : COG;		// Use 'Center Of Gravity' defuzzification method
+	DEFAULT := 0;		// Default value is 0 (if no rule activates defuzzifier)
+END_DEFUZZIFY
+
+RULEBLOCK No1
+	AND : MIN;			// Use 'min' for 'and' (also implicit use 'max' for 'or' to fulfill DeMorgan's Law)
+	ACT : MIN;			// Use 'min' activation method
+	ACCU : MAX;			// Use 'max' accumulation method
+
+	RULE 1 : IF feedback IS bad AND interest IS not_interested THEN relevancy IS not_relevant;
+	RULE 2 : IF feedback IS bad AND interest IS somewhat_interested THEN relevancy IS not_relevant;
+	RULE 4 : IF feedback IS bad AND interest IS very_interested THEN relevancy IS not_relevant;
+	RULE 5 : IF feedback IS good AND interest IS somewhat_interested THEN relevancy IS somewhat_relevant;
+	RULE 7 : IF feedback IS good AND interest IS not_interested THEN relevancy IS somewhat_relevant;  
+	RULE 8 : IF feedback IS good AND interest IS very_interested THEN relevancy IS very_relevant;
+	RULE 9 : IF feedback IS none_neutral AND interest IS somewhat_interested THEN relevancy is somewhat_relevant;
+	RULE 11 : IF feedback IS none_neutral AND interest IS not_interested THEN relevancy is not_relevant;
+	RULE 12 : IF feedback IS none_neutral AND interest IS very_interested THEN relevancy IS very_relevant;
+END_RULEBLOCK
+
+END_FUNCTION_BLOCK
+

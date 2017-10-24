@@ -1,0 +1,61 @@
+/*
+	Example: A tip calculation FIS (fuzzy inference system)
+	Calculates tip based on 'servie' and 'food'
+
+	If you want to about this example (and fuzzy logic), please 
+	read Matlab's tutorial on fuzzy logic toolbox 
+	http://www.mathworks.com/access/helpdesk/help/pdf_doc/fuzzy/fuzzy.pdf
+
+									Pablo Cingolani 
+									pcingola@users.sourceforge.net
+*/
+
+FUNCTION_BLOCK sa2	// Block definition (there may be more than one block per file)
+
+VAR_INPUT				// Define input variables
+	source_activation : REAL;
+	relation_weight : REAL;
+END_VAR
+
+VAR_OUTPUT				// Define output variable
+	final_activation : REAL;
+END_VAR
+
+FUZZIFY source_activation		// Fuzzify input variable 'service': {'poor', 'good' , 'excellent'}
+	TERM low := (0,1) (0.25,1) (0.33,0);
+	TERM medium := (0.25,0) (0.33,1) (0.66,1) (0.75,0);
+	TERM high := (0.66,0) (0.75,1) (1,1);
+END_FUZZIFY
+
+FUZZIFY relation_weight	// Fuzzify input variable 'food': { 'rancid', 'delicious' }	
+	TERM low := (0,1) (0.25,1) (0.33,0);
+	TERM medium := (0.25,0) (0.33,1) (0.66,1) (0.75,0);
+	TERM high := (0.66,0) (0.75,1) (1,1);
+END_FUZZIFY
+
+DEFUZZIFY final_activation		// Defzzzify output variable 'tip' : {'cheap', 'average', 'generous' }
+	TERM not_relevant := (0,1) (0.2,0);
+	TERM somewhat_relevant := (0.2,0) (0.3,1) (0.4,0);
+	TERM relevant := (0.4,0) (0.5,1) (0.6,0);
+	TERM very_relevant := (0.6,0) (0.7,1) (0.8,0);
+	TERM extremly_relevant := (0.8,0) (1,1);
+	METHOD : COG;		// Use 'Center Of Gravity' defuzzification method
+	DEFAULT := 0;		// Default value is 0 (if no rule activates defuzzifier)
+END_DEFUZZIFY
+
+RULEBLOCK No1
+	AND : MIN;	// Use 'min' for 'and' (also implicit use 'max' for 'or' to fulfill DeMorgan's Law)
+	ACT : MIN;	// Use 'min' activation method
+	ACCU : MAX;	// Use 'max' accumulation method
+
+	RULE 1 : IF relation_weight IS low THEN final_activation IS not_relevant;
+	RULE 2 : IF source_activation IS high AND relation_weight IS high THEN final_activation IS extremly_relevant;
+	RULE 3 : IF source_activation IS high AND relation_weight IS medium THEN final_activation IS very_relevant;
+	RULE 4 : IF source_activation IS medium AND relation_weight IS medium THEN final_activation IS relevant;
+	RULE 5 : IF source_activation IS medium AND relation_weight IS high THEN final_activation IS somewhat_relevant;
+	RULE 6 : IF source_activation IS low THEN final_activation is not_relevant;	
+	
+END_RULEBLOCK
+	
+END_FUNCTION_BLOCK
+
